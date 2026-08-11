@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen Caos | Darío Calderón Tornero</title>
+<meta name="description" content="Fully networked multiplayer cooking game for up to 4 players, built solo in Unity with Netcode for GameObjects.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b0d;
+    --surface: #101216;
+    --surface-2: #15171c;
+    --border: #22252b;
+    --text: #eef0f3;
+    --text-dim: #8b93a1;
+    --text-faint: #565b66;
+    --accent: #3d7fff;
+    --accent-soft: rgba(61,127,255,0.12);
+    --accent-glow: rgba(61,127,255,0.35);
+    --orange: #ff9d54;
+    --orange-soft: rgba(255,157,84,0.1);
+    --radius: 14px;
+    --maxw: 1120px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 32px; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .bg-grid{
+    position:fixed; inset:0; z-index:-1;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  /* ============ NAV ============ */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(10,11,13,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .back-link{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-family:'JetBrains Mono',monospace;
+    color:var(--text-dim);
+    transition:color .2s ease;
+  }
+  .back-link:hover{ color:var(--text); }
+  .nav-cta{
+    font-size:13px; font-family:'JetBrains Mono',monospace;
+    padding:8px 16px; border:1px solid var(--border); border-radius:8px;
+    color:var(--text-dim); transition:all .2s ease;
+  }
+  .nav-cta:hover{ border-color:var(--accent); color:var(--text); background:var(--accent-soft); }
+
+  /* ============ HERO ============ */
+  .hero{ padding:150px 0 56px; }
+  .eyebrow-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .badge-pill{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    padding:6px 13px; border-radius:100px;
+  }
+  .badge-players{
+    color:var(--orange); background:var(--orange-soft);
+    border:1px solid rgba(255,157,84,0.3);
+  }
+  .badge-solo{
+    color:var(--text-dim); background:var(--surface-2);
+    border:1px solid var(--border);
+  }
+  .hero h1{
+    font-size:48px; font-weight:800; letter-spacing:-0.03em; line-height:1.08;
+    margin-bottom:18px; max-width:720px;
+  }
+  .hero-tagline{
+    font-size:18px; color:var(--text-dim); max-width:620px; margin-bottom:28px;
+  }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
+  .tag{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim);
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:5px 10px; border-radius:6px;
+  }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 20px; border-radius:10px; font-size:14px; font-weight:600;
+    transition:all .2s ease; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:#5a92ff; box-shadow:0 0 24px var(--accent-glow); transform:translateY(-1px); }
+  .btn-ghost{ border-color:var(--border); color:var(--text); }
+  .btn-ghost:hover{ border-color:var(--text-faint); background:var(--surface-2); }
+
+  /* ============ TRAILER ============ */
+  .trailer-section{ padding:0 0 88px; }
+  .video-frame{
+    width:100%; aspect-ratio:16/9;
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .video-frame iframe{ width:100%; height:100%; display:block; border:0; }
+
+  /* ============ SECTION SHARED ============ */
+  .section{ padding:80px 0; border-top:1px solid var(--border); }
+  .section-head{ margin-bottom:40px; max-width:680px; }
+  .section-eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent);
+    margin-bottom:12px; display:block;
+  }
+  .section-head h2{ font-size:30px; font-weight:700; letter-spacing:-0.02em; margin-bottom:14px; }
+  .section-head p{ font-size:16px; color:var(--text-dim); }
+
+  /* ============ OVERVIEW ============ */
+  .overview-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:64px; align-items:start;
+  }
+  .overview-text p{
+    font-size:16px; color:var(--text-dim); margin-bottom:16px; max-width:540px;
+  }
+  .overview-text strong{ color:var(--text); font-weight:600; }
+  .stat-list{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .stat{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 20px; border-bottom:1px solid var(--border); font-size:14px;
+  }
+  .stat:last-child{ border-bottom:none; }
+  .stat-label{ color:var(--text-dim); }
+  .stat-value{ font-family:'JetBrains Mono',monospace; color:var(--text); font-weight:500; text-align:right; }
+
+  /* ============ GENERIC 2-COL TABLE ============ */
+  .data-table{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .data-row{
+    display:grid; grid-template-columns:220px 1fr;
+    border-bottom:1px solid var(--border);
+  }
+  .data-row:last-child{ border-bottom:none; }
+  .data-row-label{
+    padding:16px 20px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--surface-2); border-right:1px solid var(--border);
+    display:flex; align-items:center;
+  }
+  .data-row-value{ padding:16px 20px; font-size:14px; color:var(--text-dim); display:flex; align-items:center; }
+
+  /* ============ SYSTEMS GRID ============ */
+  .systems-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .system-card{
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--surface); padding:26px;
+  }
+  .system-card h3{ font-size:16px; font-weight:700; margin-bottom:10px; }
+  .system-card p{ font-size:14px; color:var(--text-dim); line-height:1.6; }
+
+  /* ============ HIGHLIGHT LIST ============ */
+  .highlight-list{ list-style:none; display:flex; flex-direction:column; gap:14px; }
+  .highlight-list li{
+    font-size:14.5px; color:var(--text-dim); padding-left:22px; position:relative; line-height:1.65;
+  }
+  .highlight-list li::before{
+    content:'→'; position:absolute; left:0; color:var(--accent); font-family:'JetBrains Mono',monospace;
+  }
+  .highlight-list strong{ color:var(--text); font-weight:600; }
+  code{
+    font-family:'JetBrains Mono',monospace; font-size:0.92em;
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:2px 6px; border-radius:5px; color:var(--accent);
+  }
+
+  /* ============ HOW TO PLAY (numbered) ============ */
+  .steps-list{ display:flex; flex-direction:column; gap:0; counter-reset:step; }
+  .step-item{
+    display:grid; grid-template-columns:44px 1fr; gap:18px;
+    padding:16px 0; border-bottom:1px solid var(--border);
+  }
+  .step-item:last-child{ border-bottom:none; }
+  .step-num{
+    counter-increment:step; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--accent-soft); border:1px solid rgba(61,127,255,0.3);
+    width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+  }
+  .step-num::before{ content: counter(step); }
+  .step-text{ font-size:14.5px; color:var(--text-dim); line-height:1.6; padding-top:4px; }
+
+  /* ============ TECH STACK TABLE ============ */
+  .stack-table{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .stack-row{ display:grid; grid-template-columns:180px 1fr; border-bottom:1px solid var(--border); }
+  .stack-row:last-child{ border-bottom:none; }
+  .stack-row-label{
+    padding:16px 20px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--surface-2); border-right:1px solid var(--border);
+  }
+  .stack-row-value{ padding:16px 20px; font-size:14px; color:var(--text-dim); }
+
+  /* ============ NOTES ============ */
+  .repo-note{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    margin-top:28px; padding:16px 20px;
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--surface); font-size:14px; color:var(--text-dim);
+  }
+  .repo-note a{ color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:13px; }
+  .repo-note a:hover{ text-decoration:underline; }
+
+  /* ============ FOOTER CTA ============ */
+  footer{ border-top:1px solid var(--border); padding:64px 0 40px; }
+  .footer-cta{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:56px; flex-wrap:wrap; gap:24px;
+  }
+  .footer-cta h2{ font-size:30px; font-weight:700; letter-spacing:-0.02em; max-width:480px; }
+  .footer-cta h2 span{ color:var(--text-dim); }
+  .footer-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:24px; border-top:1px solid var(--border);
+    font-size:13px; color:var(--text-faint); flex-wrap:wrap; gap:12px;
+  }
+  .footer-links{ display:flex; gap:24px; }
+  .footer-links a{ color:var(--text-dim); transition:color .2s ease; }
+  .footer-links a:hover{ color:var(--accent); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:860px){
+    .hero{ padding:120px 0 40px; }
+    .hero h1{ font-size:34px; }
+    .overview-grid{ grid-template-columns:1fr; gap:32px; }
+    .systems-grid{ grid-template-columns:1fr; }
+    .stack-row{ grid-template-columns:140px 1fr; }
+    .data-row{ grid-template-columns:170px 1fr; }
+    .section{ padding:56px 0; }
+    .footer-cta{ flex-direction:column; align-items:flex-start; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 20px; }
+    .stack-row{ grid-template-columns:1fr; }
+    .stack-row-label{ border-right:none; border-bottom:1px solid var(--border); }
+    .data-row{ grid-template-columns:1fr; }
+    .data-row-label{ border-right:none; border-bottom:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-name">Darío Calderón Tornero</div>
+    <a href="index.html" class="back-link">← Back to portfolio</a>
+    <a href="mailto:dariocalderontornero@gmail.com" class="nav-cta">Get in touch</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow-row">
+      <span class="badge-pill badge-players">👥 Up to 4 players online</span>
+      <span class="badge-pill badge-solo">Solo project</span>
+    </div>
+    <h1>Kitchen Caos</h1>
+    <p class="hero-tagline">
+      A fully networked multiplayer cooking game where up to 4 players cook, cut, fry and deliver recipes in real time. Built solo with Unity Netcode for GameObjects.
+    </p>
+    <div class="tag-row">
+      <span class="tag">Unity</span>
+      <span class="tag">C#</span>
+      <span class="tag">Netcode for GameObjects</span>
+      <span class="tag">Relay</span>
+      <span class="tag">Lobby</span>
+    </div>
+    <div class="hero-actions">
+      <a href="https://github.com/DarioCalderonTornero/Kitchen_Caos-Multiplayer_Cooking_Simulator" target="_blank" class="btn btn-primary">View repository</a>
+      <a href="#trailer" class="btn btn-ghost">Watch trailer ↓</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TRAILER ============ -->
+<section class="trailer-section" id="trailer">
+  <div class="wrap">
+    <div class="video-frame">
+      <iframe src="https://www.youtube.com/embed/jqdHA9saS74" title="Kitchen Caos Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="section" id="overview">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Overview</span>
+      <h2>What the game is</h2>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-text">
+        <p><strong>Kitchen Caos</strong> is a multiplayer cooking simulation built in Unity (C#) that combines advanced networking, clean architecture and reactive gameplay design. Players join online lobbies, select their characters, and enter a fast-paced kitchen where they must cook, cut, fry and deliver dishes to win.</p>
+        <p>The project demonstrates professional-level usage of <strong>Unity Netcode for GameObjects</strong>, <strong>Relay &amp; Lobby services</strong>, and a modular, object-oriented gameplay architecture — built entirely solo.</p>
+      </div>
+      <div class="stat-list">
+        <div class="stat"><span class="stat-label">Players</span><span class="stat-value">1–4, online</span></div>
+        <div class="stat"><span class="stat-label">Team</span><span class="stat-value">Solo</span></div>
+        <div class="stat"><span class="stat-label">Engine</span><span class="stat-value">Unity 2022+ / C#</span></div>
+        <div class="stat"><span class="stat-label">Networking</span><span class="stat-value">Netcode for GameObjects</span></div>
+        <div class="stat"><span class="stat-label">Backend</span><span class="stat-value">Unity Relay &amp; Lobby</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAMEPLAY SYSTEMS ============ -->
+<section class="section" id="gameplay">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Gameplay</span>
+      <h2>Core systems</h2>
+    </div>
+    <div class="systems-grid">
+      <div class="system-card">
+        <h3>Cooking stations</h3>
+        <p>Interactive cutting, frying, combining and plating systems, all synced in real time across the network.</p>
+      </div>
+      <div class="system-card">
+        <h3>Dynamic recipes</h3>
+        <p>Recipe system powered by ScriptableObjects (<code>CuttingObjectSO</code>, <code>FryingObjectSO</code>), so new dishes don't require code changes.</p>
+      </div>
+      <div class="system-card">
+        <h3>Player interaction</h3>
+        <p>Pickup, drop and combination logic for ingredients, with visual feedback at every step.</p>
+      </div>
+      <div class="system-card">
+        <h3>Delivery & scoring</h3>
+        <p><code>DeliveryManager</code> validates recipes and synchronizes success/fail events and scores across all clients.</p>
+      </div>
+      <div class="system-card">
+        <h3>Lobby system</h3>
+        <p>Player color selection, ready/unready state and kick management before a match starts.</p>
+      </div>
+      <div class="system-card">
+        <h3>Progress tracking</h3>
+        <p>Real-time visual feedback for every stage of a cooking action, in sync across all connected players.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NETWORKING ARCHITECTURE ============ -->
+<section class="section" id="architecture">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Deep dive</span>
+      <h2>Networking & architecture</h2>
+      <p>An authoritative server-client architecture keeps every action synchronized without desync between players.</p>
+    </div>
+    <ul class="highlight-list">
+      <li><strong>Authoritative server-client model</strong> — all state-changing actions run through <code>ServerRpc</code> and <code>ClientRpc</code>, with the server as the single source of truth.</li>
+      <li><strong>Network object lifecycle</strong> — spawning and destruction handled through <code>KitchenObject</code> and <code>KitchenGameManager</code>, with automatic player spawning on scene load via Netcode's SceneManager events.</li>
+      <li><strong>Smart parent-child assignment</strong> — <code>KitchenObjectParent</code> keeps ingredient ownership consistent across the network as items move between counters and players.</li>
+      <li><strong>Client-side prediction</strong> with authority-safe logic to prevent desync during fast-paced simultaneous interactions.</li>
+      <li><strong>BaseCounter architecture</strong> — a modular counter system (Cutting, Stove, Plates, Clear) built on shared interfaces (<code>IKitchenObject</code>, <code>IHasProgress</code>) for fully decoupled gameplay systems.</li>
+      <li><strong>Event-driven design</strong> — sounds, VFX and UI updates all trigger off gameplay events rather than being polled or hard-wired.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ CORE SYSTEMS TABLE ============ -->
+<section class="section" id="systems-table">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Reference</span>
+      <h2>Core systems breakdown</h2>
+    </div>
+    <div class="data-table">
+      <div class="data-row"><div class="data-row-label">KitchenGameManager</div><div class="data-row-value">Handles game states: Waiting → Countdown → Playing → Game Over.</div></div>
+      <div class="data-row"><div class="data-row-label">DeliveryManager</div><div class="data-row-value">Validates recipes, tracks scores, synchronizes success/fail events.</div></div>
+      <div class="data-row"><div class="data-row-label">Player</div><div class="data-row-value">Manages movement, interactions, and object handling per client.</div></div>
+      <div class="data-row"><div class="data-row-label">BaseCounter & Subclasses</div><div class="data-row-value">Modular station system: Cutting, Stove, Plates, Clear.</div></div>
+      <div class="data-row"><div class="data-row-label">KitchenObject</div><div class="data-row-value">Core network object for all interactable items.</div></div>
+      <div class="data-row"><div class="data-row-label">Lobby & Multiplayer</div><div class="data-row-value">Lobby creation, joining, color selection, ready system.</div></div>
+      <div class="data-row"><div class="data-row-label">SoundManager</div><div class="data-row-value">Central audio hub reacting to gameplay events, with 3D spatial audio.</div></div>
+      <div class="data-row"><div class="data-row-label">UI Systems</div><div class="data-row-value">Lobby UI, character select, progress indicators, timer HUD.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW TO PLAY ============ -->
+<section class="section" id="how-to-play">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Flow</span>
+      <h2>How to play</h2>
+    </div>
+    <div class="steps-list">
+      <div class="step-item"><div class="step-num"></div><div class="step-text">Launch the game and connect to the lobby system.</div></div>
+      <div class="step-item"><div class="step-num"></div><div class="step-text">Create or join a lobby (up to 4 players).</div></div>
+      <div class="step-item"><div class="step-num"></div><div class="step-text">Select your character and press Ready.</div></div>
+      <div class="step-item"><div class="step-num"></div><div class="step-text">Once all players are ready, the game begins.</div></div>
+      <div class="step-item"><div class="step-num"></div><div class="step-text">Pick up ingredients, cook, combine, and deliver dishes before the timer runs out.</div></div>
+      <div class="step-item"><div class="step-num"></div><div class="step-text">The player (or team) with the most successful recipes wins.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TECH STACK ============ -->
+<section class="section" id="stack">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Tech stack</span>
+      <h2>Built with</h2>
+    </div>
+    <div class="stack-table">
+      <div class="stack-row"><div class="stack-row-label">Engine</div><div class="stack-row-value">Unity 2022+</div></div>
+      <div class="stack-row"><div class="stack-row-label">Language</div><div class="stack-row-value">C#</div></div>
+      <div class="stack-row"><div class="stack-row-label">Networking</div><div class="stack-row-value">Netcode for GameObjects (NGO), Relay, Lobby Services</div></div>
+      <div class="stack-row"><div class="stack-row-label">Input</div><div class="stack-row-value">Unity Input System (rebinding supported)</div></div>
+      <div class="stack-row"><div class="stack-row-label">Data</div><div class="stack-row-value">ScriptableObjects</div></div>
+      <div class="stack-row"><div class="stack-row-label">UI</div><div class="stack-row-value">Unity UI + TextMeshPro</div></div>
+      <div class="stack-row"><div class="stack-row-label">Architecture</div><div class="stack-row-value">Event-driven, modular, network-synced</div></div>
+    </div>
+    <div class="repo-note">
+      📦 Solo project, repository maintained by me.
+      <a href="https://github.com/DarioCalderonTornero/Kitchen_Caos-Multiplayer_Cooking_Simulator" target="_blank">github.com/DarioCalderonTornero/Kitchen_Caos →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="contact">
+  <div class="wrap">
+    <div class="footer-cta">
+      <h2>See the rest of<br><span>the portfolio.</span></h2>
+      <div class="footer-actions">
+        <a href="index.html" class="btn btn-primary">← Back to portfolio</a>
+        <a href="mailto:dariocalderontornero@gmail.com" class="btn btn-ghost">Say hello</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Darío Calderón Tornero</span>
+      <div class="footer-links">
+        <a href="https://github.com/DarioCalderonTornero" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/dariocalderontornero" target="_blank">LinkedIn</a>
+        <a href="mailto:dariocalderontornero@gmail.com">Email</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
