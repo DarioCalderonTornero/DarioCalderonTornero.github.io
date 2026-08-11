@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAS Prototype | Darío Calderón Tornero</title>
+<meta name="description" content="Solo Bachelor's Thesis project implementing Unreal Engine 5's Gameplay Ability System from scratch in C++.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b0d;
+    --surface: #101216;
+    --surface-2: #15171c;
+    --border: #22252b;
+    --text: #eef0f3;
+    --text-dim: #8b93a1;
+    --text-faint: #565b66;
+    --accent: #3d7fff;
+    --accent-soft: rgba(61,127,255,0.12);
+    --accent-glow: rgba(61,127,255,0.35);
+    --purple: #a78bfa;
+    --purple-soft: rgba(167,139,250,0.1);
+    --radius: 14px;
+    --maxw: 1120px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 32px; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .bg-grid{
+    position:fixed; inset:0; z-index:-1;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  /* ============ NAV ============ */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(10,11,13,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .back-link{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-family:'JetBrains Mono',monospace;
+    color:var(--text-dim);
+    transition:color .2s ease;
+  }
+  .back-link:hover{ color:var(--text); }
+  .nav-cta{
+    font-size:13px; font-family:'JetBrains Mono',monospace;
+    padding:8px 16px; border:1px solid var(--border); border-radius:8px;
+    color:var(--text-dim); transition:all .2s ease;
+  }
+  .nav-cta:hover{ border-color:var(--accent); color:var(--text); background:var(--accent-soft); }
+
+  /* ============ HERO ============ */
+  .hero{ padding:150px 0 56px; }
+  .eyebrow-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .badge-pill{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    padding:6px 13px; border-radius:100px;
+  }
+  .badge-academic{
+    color:var(--purple); background:var(--purple-soft);
+    border:1px solid rgba(167,139,250,0.3);
+  }
+  .badge-solo{
+    color:var(--text-dim); background:var(--surface-2);
+    border:1px solid var(--border);
+  }
+  .hero h1{
+    font-size:48px; font-weight:800; letter-spacing:-0.03em; line-height:1.08;
+    margin-bottom:18px; max-width:720px;
+  }
+  .hero-tagline{
+    font-size:18px; color:var(--text-dim); max-width:640px; margin-bottom:28px;
+  }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
+  .tag{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim);
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:5px 10px; border-radius:6px;
+  }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 20px; border-radius:10px; font-size:14px; font-weight:600;
+    transition:all .2s ease; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:#5a92ff; box-shadow:0 0 24px var(--accent-glow); transform:translateY(-1px); }
+  .btn-ghost{ border-color:var(--border); color:var(--text); }
+  .btn-ghost:hover{ border-color:var(--text-faint); background:var(--surface-2); }
+
+  /* ============ TRAILER ============ */
+  .trailer-section{ padding:0 0 88px; }
+  .video-frame{
+    width:100%; aspect-ratio:16/9;
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .video-frame iframe{ width:100%; height:100%; display:block; border:0; }
+
+  /* ============ SECTION SHARED ============ */
+  .section{ padding:80px 0; border-top:1px solid var(--border); }
+  .section-head{ margin-bottom:40px; max-width:680px; }
+  .section-eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent);
+    margin-bottom:12px; display:block;
+  }
+  .section-head h2{ font-size:30px; font-weight:700; letter-spacing:-0.02em; margin-bottom:14px; }
+  .section-head p{ font-size:16px; color:var(--text-dim); }
+
+  /* ============ OVERVIEW / ACADEMIC ============ */
+  .overview-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:64px; align-items:start;
+  }
+  .overview-text p{
+    font-size:16px; color:var(--text-dim); margin-bottom:16px; max-width:560px;
+  }
+  .overview-text strong{ color:var(--text); font-weight:600; }
+  .stat-list{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .stat{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 20px; border-bottom:1px solid var(--border); font-size:14px;
+  }
+  .stat:last-child{ border-bottom:none; }
+  .stat-label{ color:var(--text-dim); }
+  .stat-value{ font-family:'JetBrains Mono',monospace; color:var(--text); font-weight:500; text-align:right; }
+
+  /* ============ GENERIC 2-COL TABLE (classes / abilities / ui widgets) ============ */
+  .data-table{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .data-row{
+    display:grid; grid-template-columns:260px 1fr;
+    border-bottom:1px solid var(--border);
+  }
+  .data-row:last-child{ border-bottom:none; }
+  .data-row-label{
+    padding:16px 20px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--surface-2); border-right:1px solid var(--border);
+    display:flex; align-items:center;
+  }
+  .data-row-value{ padding:16px 20px; font-size:14px; color:var(--text-dim); display:flex; align-items:center; }
+
+  /* Abilities table has 3 cols: name / type / pattern */
+  .ability-row{
+    display:grid; grid-template-columns:220px 160px 1fr;
+    border-bottom:1px solid var(--border);
+  }
+  .ability-row:last-child{ border-bottom:none; }
+  .ability-row > div{ padding:14px 18px; font-size:13.5px; border-right:1px solid var(--border); display:flex; align-items:center; }
+  .ability-row > div:last-child{ border-right:none; color:var(--text-dim); }
+  .ability-name{ font-family:'JetBrains Mono',monospace; color:var(--accent); }
+  .ability-type{ color:var(--text-dim); }
+  .ability-header{ background:var(--surface-2); font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; color:var(--text-faint); letter-spacing:0.04em; }
+
+  /* ============ HIGHLIGHT LIST ============ */
+  .highlight-list{ list-style:none; display:flex; flex-direction:column; gap:14px; }
+  .highlight-list li{
+    font-size:14.5px; color:var(--text-dim); padding-left:22px; position:relative; line-height:1.65;
+  }
+  .highlight-list li::before{
+    content:'→'; position:absolute; left:0; color:var(--accent); font-family:'JetBrains Mono',monospace;
+  }
+  .highlight-list strong{ color:var(--text); font-weight:600; }
+  code{
+    font-family:'JetBrains Mono',monospace; font-size:0.92em;
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:2px 6px; border-radius:5px; color:var(--accent);
+  }
+
+  /* ============ NUMBERED PIPELINE ============ */
+  .pipeline-list{ display:flex; flex-direction:column; gap:0; counter-reset:pipeline; }
+  .pipeline-item{
+    display:grid; grid-template-columns:44px 1fr; gap:18px;
+    padding:18px 0; border-bottom:1px solid var(--border);
+  }
+  .pipeline-item:last-child{ border-bottom:none; }
+  .pipeline-num{
+    counter-increment:pipeline; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--accent-soft); border:1px solid rgba(61,127,255,0.3);
+    width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+  }
+  .pipeline-num::before{ content: counter(pipeline); }
+  .pipeline-text{ font-size:14.5px; color:var(--text-dim); line-height:1.65; padding-top:4px; }
+  .pipeline-text strong{ color:var(--text); font-weight:600; }
+
+  /* ============ TAG TREE (code block) ============ */
+  .tag-tree{
+    font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.9;
+    color:var(--text-dim); background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:24px 28px; overflow-x:auto; white-space:pre;
+  }
+  .tag-tree .lvl1{ color:var(--accent); font-weight:600; }
+  .tag-tree .cmt{ color:var(--text-faint); }
+
+  /* ============ SYSTEMS GRID ============ */
+  .systems-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .system-card{
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--surface); padding:26px;
+  }
+  .system-card h3{ font-size:16px; font-weight:700; margin-bottom:10px; }
+  .system-card p{ font-size:14px; color:var(--text-dim); line-height:1.6; }
+
+  /* ============ TECH STACK TABLE ============ */
+  .stack-table{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .stack-row{ display:grid; grid-template-columns:180px 1fr; border-bottom:1px solid var(--border); }
+  .stack-row:last-child{ border-bottom:none; }
+  .stack-row-label{
+    padding:16px 20px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--surface-2); border-right:1px solid var(--border);
+  }
+  .stack-row-value{ padding:16px 20px; font-size:14px; color:var(--text-dim); }
+
+  /* ============ NOTES ============ */
+  .repo-note{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    margin-top:28px; padding:16px 20px;
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--surface); font-size:14px; color:var(--text-dim);
+  }
+  .repo-note a{ color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:13px; }
+  .repo-note a:hover{ text-decoration:underline; }
+  .repo-note.pending{ color:var(--text-faint); font-style:italic; }
+
+  /* ============ FOOTER CTA ============ */
+  footer{ border-top:1px solid var(--border); padding:64px 0 40px; }
+  .footer-cta{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:56px; flex-wrap:wrap; gap:24px;
+  }
+  .footer-cta h2{ font-size:30px; font-weight:700; letter-spacing:-0.02em; max-width:480px; }
+  .footer-cta h2 span{ color:var(--text-dim); }
+  .footer-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:24px; border-top:1px solid var(--border);
+    font-size:13px; color:var(--text-faint); flex-wrap:wrap; gap:12px;
+  }
+  .footer-links{ display:flex; gap:24px; }
+  .footer-links a{ color:var(--text-dim); transition:color .2s ease; }
+  .footer-links a:hover{ color:var(--accent); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:860px){
+    .hero{ padding:120px 0 40px; }
+    .hero h1{ font-size:34px; }
+    .overview-grid{ grid-template-columns:1fr; gap:32px; }
+    .systems-grid{ grid-template-columns:1fr; }
+    .stack-row{ grid-template-columns:140px 1fr; }
+    .data-row{ grid-template-columns:200px 1fr; }
+    .ability-row{ grid-template-columns:1fr; }
+    .ability-row > div{ border-right:none; border-bottom:1px solid var(--border); }
+    .ability-row > div:last-child{ border-bottom:none; }
+    .section{ padding:56px 0; }
+    .footer-cta{ flex-direction:column; align-items:flex-start; }
+    .tag-tree{ font-size:12px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 20px; }
+    .stack-row{ grid-template-columns:1fr; }
+    .stack-row-label{ border-right:none; border-bottom:1px solid var(--border); }
+    .data-row{ grid-template-columns:1fr; }
+    .data-row-label{ border-right:none; border-bottom:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-name">Darío Calderón Tornero</div>
+    <a href="index.html" class="back-link">← Back to portfolio</a>
+    <a href="mailto:dariocalderontornero@gmail.com" class="nav-cta">Get in touch</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow-row">
+      <span class="badge-pill badge-academic">🎓 Bachelor's Thesis</span>
+      <span class="badge-pill badge-solo">Solo project</span>
+    </div>
+    <h1>GAS Prototype</h1>
+    <p class="hero-tagline">
+      A solo technical demo built in Unreal Engine 5, implementing a fully functional, modular Gameplay Ability System from scratch in C++.
+    </p>
+    <div class="tag-row">
+      <span class="tag">Unreal Engine 5</span>
+      <span class="tag">C++</span>
+      <span class="tag">Blueprints</span>
+      <span class="tag">GAS</span>
+    </div>
+    <div class="hero-actions">
+      <a href="https://github.com/DarioCalderonTornero/GAS_SYSTEM_TFG/tree/main" target="_blank" class="btn btn-primary">View repository</a>
+      <a href="#trailer" class="btn btn-ghost">Watch trailer ↓</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TRAILER ============ -->
+<section class="trailer-section" id="trailer">
+  <div class="wrap">
+    <div class="video-frame">
+      <iframe src="https://www.youtube.com/embed/RI76NIb-wvg" title="GAS Prototype Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="section" id="overview">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Overview</span>
+      <h2>What this project proves</h2>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-text">
+        <p><strong>GAS Prototype</strong> is a playable technical demo that demonstrates a correct, structured and scalable implementation of the <strong>Gameplay Ability System</strong> in Unreal Engine 5. The focus isn't a complete commercial game — it's a solid gameplay architecture where every system has a clear responsibility and communicates with the rest without direct dependencies.</p>
+        <p>The project proves that GAS, when correctly structured from C++, enables full reusability between different character types — both the player and the enemy share the exact same architectural base without duplicating any logic.</p>
+      </div>
+      <div class="stat-list">
+        <div class="stat"><span class="stat-label">Type</span><span class="stat-value">Bachelor's Thesis (TFG)</span></div>
+        <div class="stat"><span class="stat-label">School</span><span class="stat-value">Florida Universitària</span></div>
+        <div class="stat"><span class="stat-label">Tutor</span><span class="stat-value">Miguel Fernández-Montañés</span></div>
+        <div class="stat"><span class="stat-label">Engine</span><span class="stat-value">Unreal Engine 5.6.1</span></div>
+        <div class="stat"><span class="stat-label">IDE</span><span class="stat-value">JetBrains Rider</span></div>
+        <div class="stat"><span class="stat-label">Team</span><span class="stat-value">Solo</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section class="section" id="architecture">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Architecture</span>
+      <h2>Core C++ classes</h2>
+      <p>The entire base architecture is built in C++, establishing a solid foundation that Blueprints extend without compromising its integrity.</p>
+    </div>
+    <div class="data-table">
+      <div class="data-row"><div class="data-row-label">AGameCharacterBase</div><div class="data-row-value">Shared base for player and enemy. Initializes ASC, AttributeSet, and centralizes ability granting/revoking.</div></div>
+      <div class="data-row"><div class="data-row-label">UExtendedAbilitySystemComponent</div><div class="data-row-value">Custom ASC extension. Detects relevant ability set changes and notifies the character to update the UI.</div></div>
+      <div class="data-row"><div class="data-row-label">UBasicAttributeSet</div><div class="data-row-value">Centralizes all attributes (Health, Stamina, Shield) and the full damage pipeline via PostGameplayEffectExecute.</div></div>
+      <div class="data-row"><div class="data-row-label">UMyPlayerGameplayAbility</div><div class="data-row-value">Base class for all abilities. Configures shared tags, death blocking, UI visibility flag, and player/enemy detection.</div></div>
+    </div>
+
+    <div style="margin-top:40px;">
+      <h3 style="font-size:16px; font-weight:700; margin-bottom:18px;">Key architectural decisions</h3>
+      <ul class="highlight-list">
+        <li><strong>ASC on the Character</strong> — simplified setup appropriate for a single-player prototype without respawn requirements.</li>
+        <li><strong>Single centralized AttributeSet</strong> — Health, MaxHealth, Stamina, MaxStamina, Shield, MaxShield and the Damage Meta Attribute all in one place.</li>
+        <li><strong>Ability granting centralized in C++</strong> — <code>GrantAbilities</code> and <code>RemoveAbilities</code> in <code>AGameCharacterBase</code>, returning handle arrays for precise revocation.</li>
+        <li><strong>Hybrid C++ / Blueprint approach</strong> — structural logic in C++, ability behaviour and UI in Blueprints, following Epic's recommended workflow.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABILITIES ============ -->
+<section class="section" id="abilities">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Abilities</span>
+      <h2>Implemented abilities</h2>
+    </div>
+    <div class="data-table">
+      <div class="ability-row ability-header"><div>Ability</div><div>Type</div><div>Key pattern</div></div>
+      <div class="ability-row"><div class="ability-name">GA_Dash</div><div class="ability-type">Movement</div><div>CommitCost + Root Motion + GameplayCue</div></div>
+      <div class="ability-row"><div class="ability-name">GA_MeleeAttack_AxeSwing</div><div class="ability-type">Melee</div><div>AnimNotify → WaitGameplayEvent + HitScan</div></div>
+      <div class="ability-row"><div class="ability-name">GA_MeleeAttack_AxeCombo</div><div class="ability-type">Melee</div><div>3-level Blueprint inheritance + auto-combo for enemy</div></div>
+      <div class="ability-row"><div class="ability-name">GA_ShootProjectile_Base</div><div class="ability-type">Ranged</div><div>Event + projectile spawn</div></div>
+      <div class="ability-row"><div class="ability-name">GA_AOEAttack</div><div class="ability-type">Area</div><div>Bifurcated targeting + GameplayCue with parameters</div></div>
+      <div class="ability-row"><div class="ability-name">GA_Defense_Shield</div><div class="ability-type">Defensive</div><div>AnimNotify → Event + GE with CurveTable</div></div>
+      <div class="ability-row"><div class="ability-name">GA_EquipWeapon</div><div class="ability-type">System</div><div>Dynamic ability granting/revoking via WeaponsManagerComponent</div></div>
+      <div class="ability-row"><div class="ability-name">GA_HitReaction</div><div class="ability-type">System</div><div>Activated by tag from damage pipeline</div></div>
+      <div class="ability-row"><div class="ability-name">GA_Death</div><div class="ability-type">System</div><div>Activated when Health reaches zero</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DAMAGE PIPELINE ============ -->
+<section class="section" id="damage-pipeline">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Deep dive</span>
+      <h2>The damage pipeline</h2>
+      <p>A complete centralized pipeline processes every hit before applying it to real attributes.</p>
+    </div>
+    <div class="pipeline-list">
+      <div class="pipeline-item">
+        <div class="pipeline-num"></div>
+        <div class="pipeline-text">An <strong>ability</strong> builds a <code>GameplayEffectSpec</code> and assigns damage via <code>SetByCallerMagnitude</code> with tag <code>Data.Damage</code>.</div>
+      </div>
+      <div class="pipeline-item">
+        <div class="pipeline-num"></div>
+        <div class="pipeline-text">The <strong>MMC</strong> (<code>DamageGameplayModMagnitudeCalculation</code>) intercepts the calculation — halves damage if the target has <code>Status.Buff.Immunity</code>.</div>
+      </div>
+      <div class="pipeline-item">
+        <div class="pipeline-num"></div>
+        <div class="pipeline-text"><code>PostGameplayEffectExecute</code> in <code>UBasicAttributeSet</code> reads the Damage Meta Attribute, resets it immediately, and applies shield absorption logic before reducing Health.</div>
+      </div>
+      <div class="pipeline-item">
+        <div class="pipeline-num"></div>
+        <div class="pipeline-text">A <strong>Gameplay Cue</strong> (<code>GameplayCue.Damage.Burst</code>) fires automatically from the GE asset — VFX and sound without any ability-side logic.</div>
+      </div>
+      <div class="pipeline-item">
+        <div class="pipeline-num"></div>
+        <div class="pipeline-text"><strong>HitReaction</strong> activates automatically via tag if the GE has <code>Effect.HitReaction</code> and damage was greater than zero.</div>
+      </div>
+      <div class="pipeline-item">
+        <div class="pipeline-num"></div>
+        <div class="pipeline-text"><strong>Death</strong> triggers automatically when Health reaches zero, applying <code>GE_Death</code> which adds the <code>State.Death</code> tag — blocking all abilities instantly.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REACTIVE UI ============ -->
+<section class="section" id="ui">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">UI</span>
+      <h2>Reactive UI system</h2>
+      <p>The UI never polls the system — it reacts to changes pushed by the ASC.</p>
+    </div>
+    <div class="data-table">
+      <div class="data-row"><div class="data-row-label">W_PlayerHUD</div><div class="data-row-value">Root container and orchestrator.</div></div>
+      <div class="data-row"><div class="data-row-label">W_PlayerVitals</div><div class="data-row-value">Reactive Health and Stamina bars via WaitForAttributeChanged.</div></div>
+      <div class="data-row"><div class="data-row-label">W_AbilityBar</div><div class="data-row-value">Dynamically rebuilds ability slots when Event.Abilities.Changed fires.</div></div>
+      <div class="data-row"><div class="data-row-label">W_Ability</div><div class="data-row-value">Individual slot: icon via DataTable lookup, cooldown timer, activation highlight.</div></div>
+      <div class="data-row"><div class="data-row-label">W_EnemyAvatar</div><div class="data-row-value">Enemy UI root, instanced per enemy actor above their head.</div></div>
+      <div class="data-row"><div class="data-row-label">W_EnemyHealthBar</div><div class="data-row-value">Reactive enemy Health and Shield bars.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAMEPLAY TAGS ============ -->
+<section class="section" id="tags">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Structure</span>
+      <h2>Gameplay Tags</h2>
+    </div>
+    <div class="tag-tree">GameplayAbility.
+    ├── Active          <span class="cmt">— Added to ASC while any ability is active</span>
+    ├── Death           <span class="cmt">— Activates GA_Death</span>
+    ├── HitReaction     <span class="cmt">— Activates GA_HitReaction</span>
+    └── [ability tags]  <span class="cmt">— Unique tag per ability</span>
+
+State.
+    ├── Death           <span class="cmt">— Blocks all abilities when present</span>
+    └── Buff.Immunity   <span class="cmt">— Halves incoming damage via MMC</span>
+
+Data.
+    └── Damage          <span class="cmt">— SetByCaller channel for damage magnitude</span>
+
+Effect.
+    └── HitReaction     <span class="cmt">— Marks GEs that should trigger hit reaction</span>
+
+Event.
+    └── Abilities.Changed <span class="cmt">— Notifies UI to rebuild ability bar</span>
+
+GameplayCue.
+    ├── Damage.Burst    <span class="cmt">— Impact VFX and sound</span>
+    └── AOE.*           <span class="cmt">— Area attack visual indicators</span></div>
+  </div>
+</section>
+
+<!-- ============ ENEMY SYSTEM ============ -->
+<section class="section" id="enemy">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Reusability</span>
+      <h2>Enemy system</h2>
+      <p>The enemy shares the exact same <code>AGameCharacterBase</code> architecture as the player.</p>
+    </div>
+    <ul class="highlight-list">
+      <li>Its own <code>UExtendedAbilitySystemComponent</code> and <code>UBasicAttributeSet</code>.</li>
+      <li>Can equip weapons and execute abilities with automatic targeting via the <code>BPI_Target</code> interface.</li>
+      <li>A <code>HasPlayerController()</code> utility in <code>UMyPlayerGameplayAbility</code> lets abilities branch behaviour between player and enemy without separate classes.</li>
+      <li>Example: <code>GA_MeleeAttack_AxeCombo</code> sets <code>OverrideContinueCombo = !HasPlayerController()</code> — auto-continues for the enemy, requires input for the player.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TECHNICAL HIGHLIGHTS ============ -->
+<section class="section" id="highlights">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Highlights</span>
+      <h2>More technical detail</h2>
+    </div>
+    <div class="systems-grid">
+      <div class="system-card">
+        <h3>AnimNotify sync</h3>
+        <p>All offensive abilities synchronize with animation frames via AnimNotify → WaitGameplayEvent, fully decoupled from timing.</p>
+      </div>
+      <div class="system-card">
+        <h3>SetByCaller</h3>
+        <p>A single damage GE asset is reused by every offensive ability, each supplying a different runtime magnitude.</p>
+      </div>
+      <div class="system-card">
+        <h3>HitActorArray</h3>
+        <p>Anti-duplicate filter for volume-based hit detection, used in melee HitScan and AOE SphereTrace.</p>
+      </div>
+      <div class="system-card">
+        <h3>3-level BP inheritance</h3>
+        <p><code>GA_MeleeAttack_Base</code> → <code>GA_MeleeAttack_AxeSwing</code> → <code>GA_MeleeAttack_AxeCombo</code>.</p>
+      </div>
+      <div class="system-card">
+        <h3>Equip as a Gameplay Ability</h3>
+        <p>Weapon equipping runs through GAS infrastructure itself: cooldown, death blocking, AnimNotify sync, dynamic granting.</p>
+      </div>
+      <div class="system-card">
+        <h3>CurveTable scaling</h3>
+        <p>The shield ability scales with character level through a CurveTable, without creating multiple effect assets.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TECH STACK ============ -->
+<section class="section" id="stack">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Tech stack</span>
+      <h2>Built with</h2>
+    </div>
+    <div class="stack-table">
+      <div class="stack-row"><div class="stack-row-label">Engine</div><div class="stack-row-value">Unreal Engine 5.6.1</div></div>
+      <div class="stack-row"><div class="stack-row-label">Language</div><div class="stack-row-value">C++ &amp; Blueprints</div></div>
+      <div class="stack-row"><div class="stack-row-label">IDE</div><div class="stack-row-value">JetBrains Rider</div></div>
+      <div class="stack-row"><div class="stack-row-label">Framework</div><div class="stack-row-value">Gameplay Ability System (GAS)</div></div>
+      <div class="stack-row"><div class="stack-row-label">UI</div><div class="stack-row-value">UMG (Unreal Motion Graphics)</div></div>
+      <div class="stack-row"><div class="stack-row-label">VFX</div><div class="stack-row-value">Niagara + Gameplay Cues</div></div>
+      <div class="stack-row"><div class="stack-row-label">Animation</div><div class="stack-row-value">Animation Montages + AnimNotifies</div></div>
+      <div class="stack-row"><div class="stack-row-label">Data</div><div class="stack-row-value">DataTables + CurveTables</div></div>
+    </div>
+    <div class="repo-note">
+      📦 Solo project, repository maintained by me.
+      <a href="https://github.com/DarioCalderonTornero/GAS_SYSTEM_TFG/tree/main" target="_blank">github.com/DarioCalderonTornero/GAS_SYSTEM_TFG →</a>
+    </div>
+    <div class="repo-note pending">
+      📄 Full thesis writeup — coming soon.
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="contact">
+  <div class="wrap">
+    <div class="footer-cta">
+      <h2>See the rest of<br><span>the portfolio.</span></h2>
+      <div class="footer-actions">
+        <a href="index.html" class="btn btn-primary">← Back to portfolio</a>
+        <a href="mailto:dariocalderontornero@gmail.com" class="btn btn-ghost">Say hello</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Darío Calderón Tornero</span>
+      <div class="footer-links">
+        <a href="https://github.com/DarioCalderonTornero" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/dariocalderontornero" target="_blank">LinkedIn</a>
+        <a href="mailto:dariocalderontornero@gmail.com">Email</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
