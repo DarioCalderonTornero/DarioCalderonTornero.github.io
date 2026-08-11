@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bipbop | Darío Calderón Tornero</title>
+<meta name="description" content="Mobile party game with 7 minigames, published on Google Play. Built with Unity and PlayFab by a team of two.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0b0d;
+    --surface: #101216;
+    --surface-2: #15171c;
+    --border: #22252b;
+    --text: #eef0f3;
+    --text-dim: #8b93a1;
+    --text-faint: #565b66;
+    --accent: #3d7fff;
+    --accent-soft: rgba(61,127,255,0.12);
+    --accent-glow: rgba(61,127,255,0.35);
+    --green: #4ade80;
+    --green-soft: rgba(74,222,128,0.1);
+    --radius: 14px;
+    --maxw: 1120px;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 32px; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .bg-grid{
+    position:fixed; inset:0; z-index:-1;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  /* ============ NAV ============ */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(10,11,13,0.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-name{ font-weight:700; font-size:15px; letter-spacing:-0.01em; }
+  .back-link{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; font-family:'JetBrains Mono',monospace;
+    color:var(--text-dim);
+    transition:color .2s ease;
+  }
+  .back-link:hover{ color:var(--text); }
+  .nav-cta{
+    font-size:13px; font-family:'JetBrains Mono',monospace;
+    padding:8px 16px; border:1px solid var(--border); border-radius:8px;
+    color:var(--text-dim); transition:all .2s ease;
+  }
+  .nav-cta:hover{ border-color:var(--accent); color:var(--text); background:var(--accent-soft); }
+
+  /* ============ HERO ============ */
+  .hero{ padding:150px 0 56px; }
+  .eyebrow-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .badge-pill{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    padding:6px 13px; border-radius:100px;
+  }
+  .badge-live{
+    color:var(--green); background:var(--green-soft);
+    border:1px solid rgba(74,222,128,0.3);
+  }
+  .hero h1{
+    font-size:48px; font-weight:800; letter-spacing:-0.03em; line-height:1.08;
+    margin-bottom:18px; max-width:720px;
+  }
+  .hero-tagline{
+    font-size:18px; color:var(--text-dim); max-width:620px; margin-bottom:28px;
+  }
+  .tag-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
+  .tag{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim);
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:5px 10px; border-radius:6px;
+  }
+  .hero-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 20px; border-radius:10px; font-size:14px; font-weight:600;
+    transition:all .2s ease; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--green); color:#08130c; }
+  .btn-primary:hover{ background:#67e39a; box-shadow:0 0 24px rgba(74,222,128,0.35); transform:translateY(-1px); }
+  .btn-ghost{ border-color:var(--border); color:var(--text); }
+  .btn-ghost:hover{ border-color:var(--text-faint); background:var(--surface-2); }
+
+  /* ============ TRAILER (vertical short) ============ */
+  .trailer-section{ padding:0 0 88px; }
+  .short-frame-wrap{ display:flex; justify-content:center; }
+  .video-frame{
+    width:100%; max-width:340px; aspect-ratio:9/16;
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .video-frame iframe{ width:100%; height:100%; display:block; border:0; }
+
+  /* ============ SECTION SHARED ============ */
+  .section{ padding:80px 0; border-top:1px solid var(--border); }
+  .section-head{ margin-bottom:40px; max-width:680px; }
+  .section-eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent);
+    margin-bottom:12px; display:block;
+  }
+  .section-head h2{ font-size:30px; font-weight:700; letter-spacing:-0.02em; margin-bottom:14px; }
+  .section-head p{ font-size:16px; color:var(--text-dim); }
+
+  /* ============ OVERVIEW ============ */
+  .overview-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:64px; align-items:start;
+  }
+  .overview-text p{
+    font-size:16px; color:var(--text-dim); margin-bottom:16px; max-width:540px;
+  }
+  .overview-text strong{ color:var(--text); font-weight:600; }
+  .stat-list{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .stat{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 20px; border-bottom:1px solid var(--border); font-size:14px;
+  }
+  .stat:last-child{ border-bottom:none; }
+  .stat-label{ color:var(--text-dim); }
+  .stat-value{ font-family:'JetBrains Mono',monospace; color:var(--text); font-weight:500; text-align:right; }
+
+  /* ============ MINIGAMES TABLE ============ */
+  .minigames-table{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .mg-row{
+    display:grid; grid-template-columns:48px 180px 1fr;
+    border-bottom:1px solid var(--border);
+    align-items:center;
+  }
+  .mg-row:last-child{ border-bottom:none; }
+  .mg-num{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-faint);
+    padding:16px; text-align:center; border-right:1px solid var(--border);
+  }
+  .mg-name{ padding:16px 18px; font-size:14px; font-weight:600; border-right:1px solid var(--border); }
+  .mg-desc{ padding:16px 18px; font-size:13.5px; color:var(--text-dim); }
+  .mg-name .solo-mark{
+    display:inline-block; margin-left:8px; font-size:10px; font-family:'JetBrains Mono',monospace;
+    color:var(--accent); background:var(--accent-soft); padding:2px 6px; border-radius:5px;
+    border:1px solid rgba(61,127,255,0.3); vertical-align:middle;
+  }
+
+  /* ============ CONTRIBUTION ============ */
+  .contribution-section{
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .contrib-subhead{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim);
+    margin:36px 0 16px; text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .contrib-subhead:first-of-type{ margin-top:8px; }
+  .contrib-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--border); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .contrib-item{ background:var(--surface); padding:24px 26px; }
+  .contrib-item h3{
+    font-size:15px; font-weight:700; margin-bottom:8px;
+    display:flex; align-items:center; gap:9px;
+  }
+  .contrib-item h3::before{
+    content:''; width:6px; height:6px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 8px var(--accent-glow); flex-shrink:0;
+  }
+  .contrib-item.shared h3::before{ background:var(--green); box-shadow:0 0 8px rgba(74,222,128,0.35); }
+  .contrib-item p{ font-size:13.5px; color:var(--text-dim); line-height:1.6; }
+  .contrib-note{
+    font-size:13.5px; color:var(--text-faint); margin-top:20px; line-height:1.6;
+  }
+
+  /* ============ SYSTEMS ============ */
+  .systems-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+  }
+  .system-card{
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--surface); padding:26px;
+  }
+  .system-card h3{ font-size:16px; font-weight:700; margin-bottom:10px; }
+  .system-card p{ font-size:14px; color:var(--text-dim); line-height:1.6; }
+
+  /* ============ TECH STACK TABLE ============ */
+  .stack-table{
+    display:flex; flex-direction:column;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .stack-row{
+    display:grid; grid-template-columns:180px 1fr;
+    border-bottom:1px solid var(--border);
+  }
+  .stack-row:last-child{ border-bottom:none; }
+  .stack-row-label{
+    padding:16px 20px; font-family:'JetBrains Mono',monospace; font-size:13px;
+    color:var(--accent); background:var(--surface-2); border-right:1px solid var(--border);
+  }
+  .stack-row-value{ padding:16px 20px; font-size:14px; color:var(--text-dim); }
+
+  /* ============ REPO NOTE ============ */
+  .repo-note{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    margin-top:28px; padding:16px 20px;
+    border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--surface); font-size:14px; color:var(--text-dim);
+  }
+  .repo-note a{ color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:13px; }
+  .repo-note a:hover{ text-decoration:underline; }
+
+  /* ============ FOOTER CTA ============ */
+  footer{ border-top:1px solid var(--border); padding:64px 0 40px; }
+  .footer-cta{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:56px; flex-wrap:wrap; gap:24px;
+  }
+  .footer-cta h2{ font-size:30px; font-weight:700; letter-spacing:-0.02em; max-width:480px; }
+  .footer-cta h2 span{ color:var(--text-dim); }
+  .footer-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+  .footer-bottom{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:24px; border-top:1px solid var(--border);
+    font-size:13px; color:var(--text-faint); flex-wrap:wrap; gap:12px;
+  }
+  .footer-links{ display:flex; gap:24px; }
+  .footer-links a{ color:var(--text-dim); transition:color .2s ease; }
+  .footer-links a:hover{ color:var(--accent); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:860px){
+    .hero{ padding:120px 0 40px; }
+    .hero h1{ font-size:34px; }
+    .overview-grid{ grid-template-columns:1fr; gap:32px; }
+    .contrib-grid{ grid-template-columns:1fr; }
+    .systems-grid{ grid-template-columns:1fr; }
+    .stack-row{ grid-template-columns:140px 1fr; }
+    .mg-row{ grid-template-columns:40px 130px 1fr; }
+    .section{ padding:56px 0; }
+    .footer-cta{ flex-direction:column; align-items:flex-start; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 20px; }
+    .stack-row{ grid-template-columns:1fr; }
+    .stack-row-label{ border-right:none; border-bottom:1px solid var(--border); }
+    .mg-row{ grid-template-columns:36px 1fr; }
+    .mg-desc{ grid-column:2; padding-top:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-name">Darío Calderón Tornero</div>
+    <a href="index.html" class="back-link">← Back to portfolio</a>
+    <a href="mailto:dariocalderontornero@gmail.com" class="nav-cta">Get in touch</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow-row">
+      <span class="badge-pill badge-live">● Live on Google Play</span>
+    </div>
+    <h1>Bipbop</h1>
+    <p class="hero-tagline">
+      A mobile party game with 7 independent minigames, online leaderboards and a full progression system. Built in Unity with a team of two.
+    </p>
+    <div class="tag-row">
+      <span class="tag">Unity</span>
+      <span class="tag">C#</span>
+      <span class="tag">PlayFab</span>
+      <span class="tag">Android</span>
+    </div>
+    <div class="hero-actions">
+      <a href="https://play.google.com/store/apps/details?id=com.twotapsstudio.bipbop" target="_blank" class="btn btn-primary">▶ Get it on Google Play</a>
+      <a href="https://github.com/Alexr5k7/BipBop" target="_blank" class="btn btn-ghost">View repository</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TRAILER (vertical short) ============ -->
+<section class="trailer-section">
+  <div class="wrap short-frame-wrap">
+    <div class="video-frame">
+      <iframe src="https://www.youtube.com/embed/-W2FQWRpG8g" title="Bipbop Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OVERVIEW ============ -->
+<section class="section" id="overview">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Overview</span>
+      <h2>What the game is</h2>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-text">
+        <p><strong>Bipbop</strong> is a mobile party game built in Unity where players face 7 fully independent minigames, each with its own mechanics and visual identity. Every minigame is designed around increasing time pressure — the longer you survive, the faster it gets.</p>
+        <p>The game features a complete meta-progression system with daily missions, in-game currency, unlockables, online leaderboards powered by PlayFab, and full multi-language support. Developed by a team of two programmers and published on Google Play.</p>
+      </div>
+      <div class="stat-list">
+        <div class="stat"><span class="stat-label">Team size</span><span class="stat-value">2 programmers</span></div>
+        <div class="stat"><span class="stat-label">Minigames</span><span class="stat-value">7</span></div>
+        <div class="stat"><span class="stat-label">Platform</span><span class="stat-value">Android</span></div>
+        <div class="stat"><span class="stat-label">Backend</span><span class="stat-value">PlayFab</span></div>
+        <div class="stat"><span class="stat-label">Status</span><span class="stat-value">Published</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MINIGAMES ============ -->
+<section class="section" id="minigames">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Minigames</span>
+      <h2>7 games, one shared timer</h2>
+      <p>Each minigame is fully self-contained, with its own logic and difficulty curve, sharing a global timer that accelerates across all of them.</p>
+    </div>
+    <div class="minigames-table">
+      <div class="mg-row"><div class="mg-num">01</div><div class="mg-name">Do It</div><div class="mg-desc">Follow on-screen orders using real mobile inputs — rotate, tap, zoom, shake.</div></div>
+      <div class="mg-row"><div class="mg-num">02</div><div class="mg-name">Color Rush <span class="solo-mark">built solo</span></div><div class="mg-desc">Identify the correct color under misleading text/background combinations.</div></div>
+      <div class="mg-row"><div class="mg-num">03</div><div class="mg-name">Shape Hunt</div><div class="mg-desc">Tap the correct geometric shape among increasing distractors.</div></div>
+      <div class="mg-row"><div class="mg-num">04</div><div class="mg-name">Meteor Crash <span class="solo-mark">built solo</span></div><div class="mg-desc">Control a spaceship and redirect meteors to collide with each other.</div></div>
+      <div class="mg-row"><div class="mg-num">05</div><div class="mg-name">Grid Escape</div><div class="mg-desc">Survive a 4×4 grid while dodging arrows and collecting gems dynamically.</div></div>
+      <div class="mg-row"><div class="mg-num">06</div><div class="mg-name">Spot It</div><div class="mg-desc">Find the odd one out in a 5×5 grid with subtle visual differences.</div></div>
+      <div class="mg-row"><div class="mg-num">07</div><div class="mg-name">Sort It <span class="solo-mark">built solo</span></div><div class="mg-desc">Classify items into 4 fields with dynamic modifiers — inverted input, swapped fields, color changes.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTRIBUTION ============ -->
+<section class="section contribution-section" id="contribution">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">My contribution</span>
+      <h2>How the work was split</h2>
+      <p>Bipbop was built by a team of two programmers without a strict role split — we each picked up what needed doing. A few pieces I did build entirely on my own.</p>
+    </div>
+
+    <div class="contrib-subhead">Built solo, from scratch</div>
+    <div class="contrib-grid">
+      <div class="contrib-item">
+        <h3>Color Rush</h3>
+        <p>The full minigame: Stroop-effect color/text mismatch logic, input handling and difficulty scaling.</p>
+      </div>
+      <div class="contrib-item">
+        <h3>Meteor Crash</h3>
+        <p>Spaceship control and meteor-redirect collision logic, built end to end.</p>
+      </div>
+      <div class="contrib-item">
+        <h3>Sort It</h3>
+        <p>Classification logic with dynamic modifiers — inverted input, swapped fields, color changes.</p>
+      </div>
+    </div>
+
+    <div class="contrib-subhead">Fully shared with my co-developer</div>
+    <div class="contrib-grid">
+      <div class="contrib-item shared">
+        <h3>Shop & economy</h3>
+        <p>Daily shop, luck chests and the in-game currency loop.</p>
+      </div>
+      <div class="contrib-item shared">
+        <h3>Leaderboards</h3>
+        <p>PlayFab-backed global rankings per minigame.</p>
+      </div>
+      <div class="contrib-item shared">
+        <h3>Settings & audio</h3>
+        <p>Audio controls, FPS cap, and persisted preferences.</p>
+      </div>
+      <div class="contrib-item shared">
+        <h3>Remaining minigames</h3>
+        <p>Do It, Shape Hunt, Grid Escape and Spot It — built together.</p>
+      </div>
+      <div class="contrib-item shared">
+        <h3>Google Play publishing</h3>
+        <p>Store listing, build pipeline and release management.</p>
+      </div>
+      <div class="contrib-item shared">
+        <h3>Profile & progression</h3>
+        <p>36 avatars, 36 backgrounds, and daily mission tracking.</p>
+      </div>
+    </div>
+    <p class="contrib-note">With a two-person team it was easy to stay in sync without a formal task split — this breakdown reflects what I can honestly point to as my own vs. what we built together.</p>
+  </div>
+</section>
+
+<!-- ============ SYSTEMS ============ -->
+<section class="section" id="systems">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Systems</span>
+      <h2>More technical detail</h2>
+    </div>
+    <div class="systems-grid">
+      <div class="system-card">
+        <h3>PlayFab integration</h3>
+        <p>Player authentication, leaderboard management and profile data stored and retrieved in real time from Microsoft's backend.</p>
+      </div>
+      <div class="system-card">
+        <h3>Mobile input handling</h3>
+        <p>Gyroscope, accelerometer, touch gestures, pinch-to-zoom and multi-tap inputs handled natively for the "Do It" minigame's varied prompts.</p>
+      </div>
+      <div class="system-card">
+        <h3>ScriptableObject architecture</h3>
+        <p>Minigame configs, shop items, mission definitions and cosmetic data all driven by SO assets for fast tuning without code changes.</p>
+      </div>
+      <div class="system-card">
+        <h3>Persistent data</h3>
+        <p>Currency, unlocks, settings and daily mission state saved and reliably restored across sessions.</p>
+      </div>
+      <div class="system-card">
+        <h3>Localization</h3>
+        <p>Full English and Spanish support, switchable at runtime from the settings menu.</p>
+      </div>
+      <div class="system-card">
+        <h3>Modular UI</h3>
+        <p>Independent flows for menu, minigame select, game over, pause, settings, profile, shop and leaderboards.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TECH STACK ============ -->
+<section class="section" id="stack">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-eyebrow">Tech stack</span>
+      <h2>Built with</h2>
+    </div>
+    <div class="stack-table">
+      <div class="stack-row"><div class="stack-row-label">Engine</div><div class="stack-row-value">Unity</div></div>
+      <div class="stack-row"><div class="stack-row-label">Language</div><div class="stack-row-value">C#</div></div>
+      <div class="stack-row"><div class="stack-row-label">Backend</div><div class="stack-row-value">Microsoft PlayFab</div></div>
+      <div class="stack-row"><div class="stack-row-label">Input</div><div class="stack-row-value">Unity Input System + Native Mobile APIs</div></div>
+      <div class="stack-row"><div class="stack-row-label">Data</div><div class="stack-row-value">ScriptableObjects + PlayerPrefs</div></div>
+      <div class="stack-row"><div class="stack-row-label">UI</div><div class="stack-row-value">Unity UI + TextMeshPro</div></div>
+      <div class="stack-row"><div class="stack-row-label">Platform</div><div class="stack-row-value">Android (Google Play)</div></div>
+    </div>
+    <div class="repo-note">
+      📦 The project repository is maintained by my co-developer, and I contributed as a collaborator.
+      <a href="https://github.com/Alexr5k7/BipBop" target="_blank">github.com/Alexr5k7/BipBop →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="contact">
+  <div class="wrap">
+    <div class="footer-cta">
+      <h2>See the rest of<br><span>the portfolio.</span></h2>
+      <div class="footer-actions">
+        <a href="index.html" class="btn btn-primary" style="background:var(--accent); color:#fff;">← Back to portfolio</a>
+        <a href="mailto:dariocalderontornero@gmail.com" class="btn btn-ghost">Say hello</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Darío Calderón Tornero</span>
+      <div class="footer-links">
+        <a href="https://github.com/DarioCalderonTornero" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/dariocalderontornero" target="_blank">LinkedIn</a>
+        <a href="mailto:dariocalderontornero@gmail.com">Email</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
