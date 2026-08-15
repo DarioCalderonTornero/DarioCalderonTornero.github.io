@@ -103,15 +103,16 @@
     color:var(--text);
     background:var(--accent-soft);
   }
+  .nav-actions{ display:flex; align-items:center; gap:10px; }
 
   /* ============ HERO ============ */
   .hero{
-    padding:168px 0 96px;
+    padding:148px 0 96px;
     position:relative;
   }
   .hero-grid{
     display:grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 1fr 340px;
     gap:64px;
     align-items:center;
   }
@@ -204,15 +205,45 @@
     background:
       linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
     position:relative;
-    overflow:hidden;
+    overflow:visible;
     display:flex;
     align-items:center;
     justify-content:center;
+    box-shadow:0 0 0 1px rgba(61,127,255,0.08), 0 30px 60px -20px rgba(0,0,0,0.5);
+  }
+  .hero-photo-inner{
+    width:100%; height:100%;
+    border-radius:20px;
+    overflow:hidden;
+    position:relative;
   }
   .hero-photo img{
     width:100%; height:100%;
     object-fit:cover;
     display:block;
+  }
+  .hero-photo-badge{
+    position:absolute;
+    bottom:-14px; left:50%;
+    transform:translateX(-50%);
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--text);
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:7px 14px;
+    border-radius:100px;
+    white-space:nowrap;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,0.5);
+  }
+  .hero-photo-badge::before{
+    content:'';
+    width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 8px var(--accent-glow);
   }
   .placeholder{
     display:flex;
@@ -226,7 +257,7 @@
     padding:20px;
   }
   .placeholder svg{ opacity:0.4; }
-  .hero-photo::after{
+  .hero-photo-inner::after{
     content:'';
     position:absolute;
     inset:0;
@@ -453,7 +484,7 @@
   /* ============ RESPONSIVE ============ */
   @media (max-width:860px){
     .hero-grid{ grid-template-columns:1fr; gap:40px; }
-    .hero-photo{ max-width:280px; margin:0 auto; order:-1; }
+    .hero-photo{ max-width:300px; margin:0 auto; order:-1; }
     .hero h1{ font-size:38px; }
     .hero-role{ font-size:17px; }
     .about-content{ grid-template-columns:1fr; gap:32px; }
@@ -466,6 +497,7 @@
   @media (max-width:480px){
     .skills-grid{ grid-template-columns:1fr; }
     .wrap{ padding:0 20px; }
+    .nav-actions a[download]{ display:none; }
   }
 
   /* ============ CONTACT INFO ROW ============ */
@@ -542,7 +574,10 @@
       <a href="#skills">Skills</a>
       <a href="#contact">Contact</a>
     </div>
-    <a href="mailto:dariocalderontornero@gmail.com" class="nav-cta">Get in touch</a>
+    <div class="nav-actions">
+      <a href="assets/DarioCalderonTornero_CV.pdf" download class="nav-cta">Download CV</a>
+      <a href="mailto:dariocalderontornero@gmail.com" class="nav-cta">Get in touch</a>
+    </div>
   </div>
 </nav>
 
@@ -558,12 +593,16 @@
       </p>
       <div class="hero-actions hero-fade" style="animation-delay:.48s">
         <a href="#projects" class="btn btn-primary">View Projects</a>
+        <a href="assets/DarioCalderonTornero_CV.pdf" download class="btn btn-ghost">Download CV</a>
         <a href="https://github.com/DarioCalderonTornero" target="_blank" class="btn btn-ghost">GitHub</a>
         <a href="https://linkedin.com/in/dariocalderontornero" target="_blank" class="btn btn-ghost">LinkedIn</a>
       </div>
     </div>
     <div class="hero-photo hero-fade" style="animation-delay:.2s">
-      <img src="assets/photo.jpg" alt="Darío Calderón Tornero">
+      <div class="hero-photo-inner">
+        <img src="assets/photo.jpg" alt="Darío Calderón Tornero">
+      </div>
+      <span class="hero-photo-badge">📍 Valencia, Spain</span>
     </div>
   </div>
 </header>
