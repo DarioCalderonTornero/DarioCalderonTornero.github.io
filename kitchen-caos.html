@@ -334,7 +334,7 @@
       <div class="stat-list">
         <div class="stat"><span class="stat-label">Players</span><span class="stat-value">1–4, online</span></div>
         <div class="stat"><span class="stat-label">Team</span><span class="stat-value">Solo</span></div>
-        <div class="stat"><span class="stat-label">Engine</span><span class="stat-value">Unity 2022+ / C#</span></div>
+        <div class="stat"><span class="stat-label">Engine</span><span class="stat-value">Unity 6 / C#</span></div>
         <div class="stat"><span class="stat-label">Networking</span><span class="stat-value">Netcode for GameObjects</span></div>
         <div class="stat"><span class="stat-label">Backend</span><span class="stat-value">Unity Relay &amp; Lobby</span></div>
       </div>
@@ -390,7 +390,7 @@
       <li><strong>Authoritative server-client model</strong> — all state-changing actions run through <code>ServerRpc</code> and <code>ClientRpc</code>, with the server as the single source of truth.</li>
       <li><strong>Network object lifecycle</strong> — spawning and destruction handled through <code>KitchenObject</code> and <code>KitchenGameManager</code>, with automatic player spawning on scene load via Netcode's SceneManager events.</li>
       <li><strong>Smart parent-child assignment</strong> — <code>KitchenObjectParent</code> keeps ingredient ownership consistent across the network as items move between counters and players.</li>
-      <li><strong>Client-side prediction</strong> with authority-safe logic to prevent desync during fast-paced simultaneous interactions.</li>
+      <li><strong>Replicated state</strong> — game state, countdown and match timers, stove frying/burning timers and the lobby player list are synced with <code>NetworkVariable</code> and <code>NetworkList</code>, so every client sees the same progress.</li>
       <li><strong>BaseCounter architecture</strong> — a modular counter system (Cutting, Stove, Plates, Clear) built on shared interfaces (<code>IKitchenObject</code>, <code>IHasProgress</code>) for fully decoupled gameplay systems.</li>
       <li><strong>Event-driven design</strong> — sounds, VFX and UI updates all trigger off gameplay events rather than being polled or hard-wired.</li>
     </ul>
@@ -443,7 +443,7 @@
       <h2>Built with</h2>
     </div>
     <div class="stack-table">
-      <div class="stack-row"><div class="stack-row-label">Engine</div><div class="stack-row-value">Unity 2022+</div></div>
+      <div class="stack-row"><div class="stack-row-label">Engine</div><div class="stack-row-value">Unity 6</div></div>
       <div class="stack-row"><div class="stack-row-label">Language</div><div class="stack-row-value">C#</div></div>
       <div class="stack-row"><div class="stack-row-label">Networking</div><div class="stack-row-value">Netcode for GameObjects (NGO), Relay, Lobby Services</div></div>
       <div class="stack-row"><div class="stack-row-label">Input</div><div class="stack-row-value">Unity Input System (rebinding supported)</div></div>

@@ -410,6 +410,38 @@
     border-radius:6px;
   }
 
+  /* ============ MORE PROJECTS ============ */
+  .more-projects{ margin-top:56px; }
+  .more-projects h3{
+    font-size:12px;
+    font-family:'JetBrains Mono',monospace;
+    color:var(--accent);
+    margin-bottom:18px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+  .more-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+  }
+  .more-card{
+    display:flex;
+    flex-direction:column;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    background:var(--surface);
+    padding:20px 22px;
+    transition:border-color .25s ease, transform .25s ease;
+  }
+  .more-card:hover{
+    border-color:rgba(61,127,255,0.4);
+    transform:translateY(-3px);
+  }
+  .more-card .project-title{ font-size:16px; }
+  .more-card .project-desc{ flex:1; }
+  .more-card .wip{ color:#ffce54; font-weight:500; }
+
   /* ============ SKILLS ============ */
   .skills-grid{
     display:grid;
@@ -489,6 +521,7 @@
     .hero-role{ font-size:17px; }
     .about-content{ grid-template-columns:1fr; gap:32px; }
     .projects-grid{ grid-template-columns:1fr; }
+    .more-grid{ grid-template-columns:1fr; }
     .skills-grid{ grid-template-columns:1fr 1fr; }
     .nav-links{ display:none; }
     .section{ padding:64px 0; }
@@ -708,6 +741,44 @@
       </a>
 
     </div>
+
+    <!-- MORE PROJECTS -->
+    <div class="more-projects reveal">
+      <h3>More projects on GitHub</h3>
+      <div class="more-grid">
+
+        <a class="more-card" href="https://github.com/DarioCalderonTornero/VR-Carnival-Experience_Virtual-Reality-Minigames-and-Attractions" target="_blank">
+          <div class="project-title">VR Carnival Experience</div>
+          <p class="project-desc">Virtual reality fairground with minigames and rideable attractions: VR locomotion, teleportation and physics-based grab and throw interactions.</p>
+          <div class="tag-row">
+            <span class="tag">Unity</span>
+            <span class="tag">VR</span>
+            <span class="tag">XR Toolkit</span>
+          </div>
+        </a>
+
+        <a class="more-card" href="https://github.com/DarioCalderonTornero/Inventory_Framework" target="_blank">
+          <div class="project-title">Inventory Framework <span class="wip">· WIP</span></div>
+          <p class="project-desc">Data-driven inventory system with fragment-based item definitions in C++: pickup, drop, stacking and reactive UI.</p>
+          <div class="tag-row">
+            <span class="tag">Unreal 5</span>
+            <span class="tag">C++</span>
+            <span class="tag">UMG</span>
+          </div>
+        </a>
+
+        <a class="more-card" href="https://github.com/DarioCalderonTornero/IA_Maze" target="_blank">
+          <div class="project-title">IA Maze — A* Visualizer</div>
+          <p class="project-desc">Grid-based A* pathfinding that visualizes every step of the search, showing the g, h and f costs of each node in real time.</p>
+          <div class="tag-row">
+            <span class="tag">Unity</span>
+            <span class="tag">C#</span>
+            <span class="tag">AI</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
   </div>
 </section>
 
@@ -739,14 +810,18 @@
         <ul>
           <li>Gameplay Ability System</li>
           <li>Netcode for GameObjects</li>
+          <li>Unity Relay &amp; Lobby</li>
           <li>Cinemachine</li>
           <li>PlayFab</li>
+          <li>XR Interaction Toolkit</li>
         </ul>
       </div>
       <div class="skill-group">
         <h3>Tools</h3>
         <ul>
           <li>ScriptableObjects</li>
+          <li>UMG &amp; Niagara</li>
+          <li>Unity Input System</li>
           <li>Git / GitHub</li>
           <li>JetBrains Rider</li>
         </ul>
