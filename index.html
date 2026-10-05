@@ -422,7 +422,7 @@
   }
   .more-grid{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));
     gap:16px;
   }
   .more-card{
@@ -746,6 +746,16 @@
     <div class="more-projects reveal">
       <h3>More projects on GitHub</h3>
       <div class="more-grid">
+
+        <a class="more-card" href="https://github.com/DarioCalderonTornero/IdleWorkshop" target="_blank">
+          <div class="project-title">Idle Workshop <span class="wip">· WIP</span></div>
+          <p class="project-desc">Mobile idle tycoon in Unity 6: offline earnings, a custom save system, data-driven upgrades and editor tooling to audit saves and balancing.</p>
+          <div class="tag-row">
+            <span class="tag">Unity 6</span>
+            <span class="tag">C#</span>
+            <span class="tag">Mobile</span>
+          </div>
+        </a>
 
         <a class="more-card" href="https://github.com/DarioCalderonTornero/VR-Carnival-Experience_Virtual-Reality-Minigames-and-Attractions" target="_blank">
           <div class="project-title">VR Carnival Experience</div>
